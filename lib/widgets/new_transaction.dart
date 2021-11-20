@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:expense_app/widgets/adaptive_flat_button.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -21,10 +24,10 @@ class _NewTransactionState extends State<NewTransaction> {
     final enteredTitle = titleController.text;
     final enteredAmount = double.parse(amountController.text);
 
-
-    if (enteredTitle.isEmpty || enteredAmount <= 0 || _selectDate == null) return;
+    if (enteredTitle.isEmpty || enteredAmount <= 0 || _selectDate == null)
+      return;
     //to use the property fro main class
-    widget.fun(enteredTitle, enteredAmount,_selectDate);
+    widget.fun(enteredTitle, enteredAmount, _selectDate);
 
     Navigator.of(context).pop();
   }
@@ -34,18 +37,15 @@ class _NewTransactionState extends State<NewTransaction> {
             context: context,
             initialDate: DateTime.now(),
             firstDate: DateTime(2019),
-            lastDate: DateTime.now()).then((pickedDate) {
-              if(pickedDate == null)
-                return;
-              else {
-
-                setState(() {
-                  _selectDate = pickedDate;
-                });
-
-              }
-
-
+            lastDate: DateTime.now())
+        .then((pickedDate) {
+      if (pickedDate == null)
+        return;
+      else {
+        setState(() {
+          _selectDate = pickedDate;
+        });
+      }
     });
   }
 
@@ -54,7 +54,11 @@ class _NewTransactionState extends State<NewTransaction> {
     return SingleChildScrollView(
       child: Card(
         child: Container(
-          padding: EdgeInsets.only(top: 10.0,left: 10.0,right: 10.0,bottom: MediaQuery.of(context).viewInsets.bottom + 20.0),
+          padding: EdgeInsets.only(
+              top: 10.0,
+              left: 10.0,
+              right: 10.0,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -75,16 +79,11 @@ class _NewTransactionState extends State<NewTransaction> {
                 height: 70,
                 child: Row(
                   children: [
-                    Expanded(child: Text(_selectDate == null ?"No date chosen": 'Picked Date: ${DateFormat.yMd().format(_selectDate)}')),
-                    TextButton(
-                      onPressed: _presentDatePicker,
-                      child: Text(
-                        'Choose Date',
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    )
+                    Expanded(
+                        child: Text(_selectDate == null
+                            ? "No date chosen"
+                            : 'Picked Date: ${DateFormat.yMd().format(_selectDate)}')),
+                    AdaptiveFlatButton("Choose Date", _presentDatePicker),
                   ],
                 ),
               ),

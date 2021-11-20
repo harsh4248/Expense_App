@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:expense_app/widgets/chart.dart';
 import 'package:expense_app/widgets/new_transaction.dart';
 import 'package:expense_app/widgets/transactions_list.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
@@ -22,26 +24,20 @@ void main() {
       primarySwatch: Colors.purple,
       accentColor: Colors.amber,
       fontFamily: 'Quicksand',
-      textTheme: ThemeData
-          .light()
-          .textTheme
-          .copyWith(
-        headline6: TextStyle(
-            fontFamily: 'OpenSans',
-            fontWeight: FontWeight.bold,
-            fontSize: 18),
-        button: TextStyle(color: Colors.white),
-      ),
-      appBarTheme: AppBarTheme(
-          textTheme: ThemeData
-              .light()
-              .textTheme
-              .copyWith(
+      textTheme: ThemeData.light().textTheme.copyWith(
             headline6: TextStyle(
                 fontFamily: 'OpenSans',
-                fontSize: 20,
-                fontWeight: FontWeight.bold),
-          )),
+                fontWeight: FontWeight.bold,
+                fontSize: 18),
+            button: TextStyle(color: Colors.white),
+          ),
+      appBarTheme: AppBarTheme(
+          textTheme: ThemeData.light().textTheme.copyWith(
+                headline6: TextStyle(
+                    fontFamily: 'OpenSans',
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              )),
     ),
   ));
 }
@@ -53,7 +49,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   bool _showChart = false;
   final titleController = TextEditingController();
 
@@ -102,90 +97,101 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final appBar = AppBar(
-      //backgroundColor: Theme.of(context).appBarTheme,
-      title: Text('Expense App'),
-      actions: [
-        IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              //print('Button clicked');
-              _startAddNewTransaction(context);
-            }),
-      ],
-    );
+    final PreferredSizeWidget appBar = Platform.isIOS
+        ? CupertinoNavigationBar(
+            middle: Text('Expense App'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () => _startAddNewTransaction(context),
+                  child: Icon(CupertinoIcons.add),
+                ),
+              ],
+            ))
+        : AppBar(
+            //backgroundColor: Theme.of(context).appBarTheme,
+            title: Text('Expense App'),
+            actions: [
+              IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () {
+                    //print('Button clicked');
+                    _startAddNewTransaction(context);
+                  }),
+            ],
+          );
     final transactionListContainer = Container(
-        height: (MediaQuery
-            .of(context)
-            .size
-            .height -
-            appBar.preferredSize.height -
-            MediaQuery
-                .of(context)
-                .padding
-                .top) *
+        height: (MediaQuery.of(context).size.height -
+                appBar.preferredSize.height -
+                MediaQuery.of(context).padding.top) *
             0.7,
         child: TransactionList(_userTransaction, _delTransactions));
     final chartContainer = Container(
-        height: (MediaQuery
-            .of(context)
-            .size
-            .height -
-            appBar.preferredSize.height -
-            MediaQuery
-                .of(context)
-                .padding
-                .top) *
+        height: (MediaQuery.of(context).size.height -
+                appBar.preferredSize.height -
+                MediaQuery.of(context).padding.top) *
             0.7,
         child: Chart(_userTransaction));
-    final isLandscapedMode = MediaQuery
-        .of(context)
-        .orientation == Orientation.landscape;
-    if(!isLandscapedMode)
-      _showChart = false;
-    return Scaffold(
-      appBar: appBar,
-      body: SingleChildScrollView(
+    final isLandscapedMode =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    if (!isLandscapedMode) _showChart = false;
+    final bodyCode = SafeArea(
+      child: SingleChildScrollView(
         child: Column(
           //mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             //Column(children: List.generate(transactions.length, (index) {return Card(child: Text(transactions[index].title),);}),)
-            if(isLandscapedMode)
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text('Show Chart'),
-                Switch(value: _showChart, onChanged: (val) {
-                  setState(() {
-                    _showChart = val;
-                  });
-                },),
-              ],),
-            if(!isLandscapedMode)
+            if (isLandscapedMode)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Show Chart',
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                  Switch.adaptive(
+                    activeColor: Theme.of(context).accentColor,
+                    value: _showChart,
+                    onChanged: (val) {
+                      setState(() {
+                        _showChart = val;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            if (!isLandscapedMode)
               Container(
-                  height: (MediaQuery
-                      .of(context)
-                      .size
-                      .height -
-                      appBar.preferredSize.height -
-                      MediaQuery
-                          .of(context)
-                          .padding
-                          .top) *
+                  height: (MediaQuery.of(context).size.height -
+                          appBar.preferredSize.height -
+                          MediaQuery.of(context).padding.top) *
                       0.3,
                   child: Chart(_userTransaction)),
             _showChart ? chartContainer : transactionListContainer
-
-
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () {
-          _startAddNewTransaction(context);
-        },
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
+    return Platform.isIOS
+        ? CupertinoPageScaffold(
+            child: bodyCode,
+            navigationBar: appBar,
+          )
+        : Scaffold(
+            appBar: appBar,
+            body: bodyCode,
+            floatingActionButton: Platform.isIOS
+                ? Container()
+                : FloatingActionButton(
+                    child: Icon(Icons.add),
+                    onPressed: () {
+                      _startAddNewTransaction(context);
+                    },
+                  ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+          );
   }
 }
